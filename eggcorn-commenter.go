@@ -304,11 +304,11 @@ func writeHTML(htmlDir, rawURL string, comments []*Comment) error {
 <h2>Comments</h2>
 {{range .Comments}}
 <div class="comment">
-	<div class="comment-name">{{.Name}}</div>
-	<time>{{.Time}}</time>
-	<div class="comment-text">
-		{{.Text}}
+	<div class="comment-header">
+		Posted by <span class="comment-name">{{.Name}}</span>
+		at <time>{{.Time}}</time>
 	</div>
+	<div class="comment-text">{{.Text}}</div>
 </div>
 {{end}}
 `

@@ -18,6 +18,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -41,6 +42,18 @@ type Comment struct {
 	ID        string
 }
 
+// ByTime implements sort.Interface for []*Comment based on the Time field.
+type ByTime []*Comment
+
+func (t ByTime) Len() int      { return len(t) }
+func (t ByTime) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
+func (t ByTime) Less(i, j int) bool {
+	if !t[i].Time.Equal(t[j].Time) {
+		return t[i].Time.Before(t[j].Time)
+	}
+	return t[i].ID < t[j].ID
+}
+
 func main() {
 	args, err := getArgs()
 	if err != nil {
@@ -56,6 +69,7 @@ func main() {
 	}
 
 	for rawURL, pageComments := range comments {
+		sort.Sort(ByTime(pageComments))
 		err := writeHTML(args.HTMLDir, rawURL, pageComments)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Unable to write HTML for page: %s: %s\n", rawURL,
@@ -287,14 +301,15 @@ func writeHTML(htmlDir, rawURL string, comments []*Comment) error {
 	path := filepath.Join(htmlDir, filename)
 
 	htmlFragment := `
+<h2>Comments</h2>
 {{range .Comments}}
-	<div class="comment">
-		<div class="comment-name">{{.Name}}</div>
-		<time>{{.Time}}</time>
-		<div class="comment-text">
-			{{.Text}}
-		</div>
+<div class="comment">
+	<div class="comment-name">{{.Name}}</div>
+	<time>{{.Time}}</time>
+	<div class="comment-text">
+		{{.Text}}
 	</div>
+</div>
 {{end}}
 `
 
